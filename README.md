@@ -71,3 +71,4 @@ It also covers save-to-folder mode and skipping files that already arrived.
   through starts again from zero.
 - The room creator sends and the joiner receives; to send the other way, start
   a new room from the other device.
+"# Sherrrr" 
