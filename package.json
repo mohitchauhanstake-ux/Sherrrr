@@ -1,0 +1,12 @@
+{
+  "name": "sher",
+  "private": true,
+  "workspaces": ["web", "signaling"],
+  "scripts": {
+    "dev:web": "npm run dev -w web",
+    "dev:signal": "npm run dev -w signaling",
+    "build": "npm run build -w web",
+    "typecheck": "npm run typecheck -w web && npm run typecheck -w signaling",
+    "test:e2e": "npm run test:e2e -w web"
+  }
+}
