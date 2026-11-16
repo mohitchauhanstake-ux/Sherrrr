@@ -17,7 +17,7 @@ export interface SessionState {
   path: PathKind | null;
   /** Unrecoverable pairing problem (wrong code, room full). */
   fatal: string | null;
-  picked: { count: number; bytes: number };
+  picked: { count: number; bytes: number; list: PickedFile[] };
   phase: TransferPhase;
   files: FileEntry[];
   totalBytes: number;
@@ -61,7 +61,7 @@ export class Session {
       link: "server",
       path: null,
       fatal: null,
-      picked: { count: 0, bytes: 0 },
+      picked: { count: 0, bytes: 0, list: [] },
       phase: "none",
       files: [],
       totalBytes: 0,
@@ -115,6 +115,11 @@ export class Session {
         this.picked.push(f);
       }
     }
+    this.refreshPicked();
+  }
+
+  removeFile(path: string): void {
+    this.picked = this.picked.filter((p) => p.path !== path);
     this.refreshPicked();
   }
 
@@ -239,7 +244,11 @@ export class Session {
 
   private refreshPicked(): void {
     this.patch({
-      picked: { count: this.picked.length, bytes: this.picked.reduce((sum, p) => sum + p.file.size, 0) },
+      picked: {
+        count: this.picked.length,
+        bytes: this.picked.reduce((sum, p) => sum + p.file.size, 0),
+        list: [...this.picked],
+      },
     });
   }
 

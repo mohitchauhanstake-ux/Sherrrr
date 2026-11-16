@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import QRCode from "qrcode";
 import type { LinkStatus, PathKind, Role } from "./lib/link";
 import { fromDrop, fromInput } from "./lib/pick";
+import type { PickedFile } from "./lib/sender";
 import { Session, type SessionState } from "./lib/session";
 import { supportsFolderSink } from "./lib/sinks";
 import {
@@ -12,6 +13,8 @@ import {
   normalizeCode,
   randomCode,
 } from "./lib/util";
+
+const VERSION = "v0.1";
 
 function openSession(role: Role, code: string): Session {
   const session = new Session(role, code);
@@ -30,22 +33,124 @@ export function App() {
     history.replaceState(null, "", location.pathname + location.search);
     setSession(null);
   };
+  const showHow = () => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <main className={session ? "page narrow" : "page"}>
-      <header className="topbar">
-        <div className="wordmark" aria-label="Sherrr">
-          Sher<span>r</span>
-          <span>r</span>
+    <div className={session ? "shell in-session" : "shell"}>
+      <header className="site-header">
+        <div className="bar">
+          <span className="brand">
+            <Mark />
+            <span className="wordmark" aria-label="Sherrr">
+              Sher<span>r</span>
+              <span>r</span>
+            </span>
+          </span>
+          <div className="bar-end">
+            {session ? (
+              <TopbarStatus session={session} onLeave={leave} />
+            ) : (
+              <button className="nav-link" onClick={showHow}>
+                How it works
+              </button>
+            )}
+            <ThemeToggle />
+          </div>
         </div>
-        {session && <TopbarStatus session={session} onLeave={leave} />}
       </header>
-      {session ? (
-        <SessionView key={session.getState().code} session={session} onLeave={leave} />
-      ) : (
-        <Home onStart={(role, code) => setSession(openSession(role, code))} />
-      )}
-    </main>
+
+      <main className="page">
+        {session ? (
+          <SessionView key={session.getState().code} session={session} onLeave={leave} />
+        ) : (
+          <Home onStart={(role, code) => setSession(openSession(role, code))} />
+        )}
+      </main>
+
+      <footer className="site-footer">
+        <div className="foot">
+          <p className="foot-note">
+            <Mark />
+            <span>Files go device to device and never touch our servers.</span>
+          </p>
+          <div className="foot-links">
+            {!session && <button onClick={showHow}>How it works</button>}
+            <span className="ver">{VERSION}</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// ---- brand and theme -------------------------------------------------------
+
+/** A file in motion: a dot with speed lines trailing behind it. */
+function Mark() {
+  return (
+    <svg className="mark" viewBox="0 0 24 24" aria-hidden="true">
+      <rect width="24" height="24" rx="6" fill="var(--ink)" />
+      <g fill="none" stroke="var(--paper)" strokeWidth="2" strokeLinecap="round">
+        <path d="M4.5 12h6" />
+        <path d="M7 7.75h4.5M7 16.25h4.5" opacity=".55" />
+      </g>
+      <circle cx="16.5" cy="12" r="3.25" fill="var(--paper)" />
+    </svg>
+  );
+}
+
+function currentTheme(): "light" | "dark" {
+  const chosen = document.documentElement.dataset.theme;
+  if (chosen === "light" || chosen === "dark") return chosen;
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function ThemeToggle() {
+  const [theme, setTheme] = useState(currentTheme);
+  useEffect(() => {
+    // Follow the system setting until the visitor makes their own choice.
+    const system = matchMedia("(prefers-color-scheme: dark)");
+    const onChange = () => setTheme(currentTheme());
+    system.addEventListener("change", onChange);
+    return () => system.removeEventListener("change", onChange);
+  }, []);
+
+  const toggle = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem("sherrr-theme", next);
+    } catch {
+      // Storage can be unavailable (private browsing); the choice still applies now.
+    }
+    setTheme(next);
+  };
+
+  return (
+    <button
+      className="btn quiet icon"
+      onClick={toggle}
+      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      <svg
+        viewBox="0 0 16 16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        {theme === "dark" ? (
+          <>
+            <circle cx="8" cy="8" r="2.75" />
+            <path d="M8 1.75v1.5M8 12.75v1.5M1.75 8h1.5M12.75 8h1.5M3.6 3.6l1.05 1.05M11.35 11.35l1.05 1.05M3.6 12.4l1.05-1.05M11.35 4.65l1.05-1.05" />
+          </>
+        ) : (
+          <path d="M13.25 9.4A5.5 5.5 0 0 1 6.6 2.75a5.5 5.5 0 1 0 6.65 6.65Z" />
+        )}
+      </svg>
+    </button>
   );
 }
 
@@ -57,8 +162,8 @@ function Home({ onStart }: { onStart: (role: Role, code: string) => void }) {
   return (
     <>
       <h1 className="lede">Send big files straight to another device.</h1>
-      <p className="body">
-        No upload, no account, no size limit. Files go directly from this device to the other one.
+      <p className="lede-sub">
+        No upload and no account. Files travel directly from this device to the other one.
       </p>
       <div className="duo">
         <section className="sheet">
@@ -66,7 +171,7 @@ function Home({ onStart }: { onStart: (role: Role, code: string) => void }) {
           <h2 className="title">Share from this device</h2>
           <p className="body">You get a code. Open it on the device that should receive the files.</p>
           <button className="btn solid block" onClick={() => onStart("host", randomCode())}>
-            <ArrowUp />
+            <Glyph d="M8 13V3M3.5 7.5 8 3l4.5 4.5" width="1.8" />
             Send files
           </button>
         </section>
@@ -99,22 +204,81 @@ function Home({ onStart }: { onStart: (role: Role, code: string) => void }) {
           </form>
         </section>
       </div>
+
+      <section className="section" id="how" aria-labelledby="how-heading">
+        <h2 className="eyebrow" id="how-heading">
+          How it works
+        </h2>
+        <ol className="steps">
+          <li>
+            <span className="n">01</span>
+            <h3>Get a code</h3>
+            <p>Press Send files. You get a six-character code and a QR to scan.</p>
+          </li>
+          <li>
+            <span className="n">02</span>
+            <h3>Join with the code</h3>
+            <p>Scan the QR or type the code on the other device. The two find each other.</p>
+          </li>
+          <li>
+            <span className="n">03</span>
+            <h3>Files go direct</h3>
+            <p>Pick what to send. It travels straight between the two devices.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section className="section" aria-labelledby="facts-heading">
+        <h2 className="eyebrow" id="facts-heading">
+          Good to know
+        </h2>
+        <ul className="facts">
+          <li>
+            <h3>
+              <Glyph d="M4.5 7h7A1.5 1.5 0 0 1 13 8.5v3.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 3 12V8.5A1.5 1.5 0 0 1 4.5 7ZM5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
+              Encrypted
+            </h3>
+            <p>Every transfer is encrypted between the two devices.</p>
+          </li>
+          <li>
+            <h3>
+              <Glyph d="M4.5 11.5h7a2.5 2.5 0 0 0 .4-4.97A4 4 0 0 0 4.2 7.3a2.2 2.2 0 0 0 .3 4.2ZM2.5 2.5l11 11" />
+              Nothing stored
+            </h3>
+            <p>Files never pass through or sit on a server.</p>
+          </li>
+          <li>
+            <h3>
+              <Glyph d="M10.5 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM3 13.5a5 5 0 0 1 10 0M2.5 2.5l11 11" />
+              No account
+            </h3>
+            <p>No sign-up, no email, and no app to install.</p>
+          </li>
+          <li>
+            <h3>
+              <Glyph d="M2.5 4.5h4l1.5 2h5.5v6.5h-11ZM8 9v2.5M6.75 10.25h2.5" />
+              Built for big files
+            </h3>
+            <p>Files stream in small pieces, so large batches stay smooth.</p>
+          </li>
+        </ul>
+      </section>
     </>
   );
 }
 
-function ArrowUp() {
+function Glyph({ d, width = "1.5" }: { d: string; width?: string }) {
   return (
     <svg
       viewBox="0 0 16 16"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth={width}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M8 13V3M3.5 7.5 8 3l4.5 4.5" />
+      <path d={d} />
     </svg>
   );
 }
@@ -145,7 +309,7 @@ function TopbarStatus({ session, onLeave }: { session: Session; onLeave: () => v
   if (state.fatal) return null;
   const live = state.link === "connected";
   return (
-    <div className="topbar-end">
+    <>
       <span className="status" role="status">
         <span className={`dot ${live ? "live" : "wait"}`} />
         <span className="status-text">
@@ -158,7 +322,7 @@ function TopbarStatus({ session, onLeave }: { session: Session; onLeave: () => v
           Disconnect
         </button>
       )}
-    </div>
+    </>
   );
 }
 
@@ -207,36 +371,38 @@ function Pairing({ code, onCancel }: { code: string; onCancel: () => void }) {
   }, [url]);
 
   return (
-    <section className="sheet center">
-      <h2 className="title">Connect the other device</h2>
-      <p className="body">Scan with its camera, or open Sherrr there and type the code.</p>
+    <section className="sheet pairing">
       {qr && (
-        <div className="qr">
+        <div className="qr pairing-qr">
           <img src={qr} alt="QR code that opens the receiving page" />
         </div>
       )}
-      <div className="cells" data-testid="room-code" data-code={code} aria-label={`Code ${code.split("").join(" ")}`}>
-        {code.split("").map((char, i) => (
-          <span key={i} aria-hidden="true">
-            {char}
-          </span>
-        ))}
-      </div>
-      <div className="actions stretch">
-        <button
-          className="btn outline"
-          onClick={() => {
-            void navigator.clipboard?.writeText(url).then(() => {
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            });
-          }}
-        >
-          {copied ? "Link copied" : "Copy link"}
-        </button>
-        <button className="btn quiet" onClick={onCancel}>
-          Cancel
-        </button>
+      <div className="pairing-main">
+        <h2 className="title">Connect the other device</h2>
+        <p className="body">Scan with its camera, or open Sherrr there and type the code.</p>
+        <div className="cells" data-testid="room-code" data-code={code} aria-label={`Code ${code.split("").join(" ")}`}>
+          {code.split("").map((char, i) => (
+            <span key={i} aria-hidden="true">
+              {char}
+            </span>
+          ))}
+        </div>
+        <div className="actions stretch">
+          <button
+            className="btn outline"
+            onClick={() => {
+              void navigator.clipboard?.writeText(url).then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              });
+            }}
+          >
+            {copied ? "Link copied" : "Copy link"}
+          </button>
+          <button className="btn quiet" onClick={onCancel}>
+            Cancel
+          </button>
+        </div>
       </div>
     </section>
   );
@@ -280,41 +446,45 @@ function HostPanel({ session, state }: { session: Session; state: SessionState }
   );
 }
 
+/** Rows drawn in the picker; beyond this the rest are summarised in one line. */
+const MAX_LISTED = 200;
+
 function FilePicker({ session, state }: { session: Session; state: SessionState }) {
   const filesInput = useRef<HTMLInputElement>(null);
   const folderInput = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const canPickFolder = "webkitdirectory" in HTMLInputElement.prototype;
-  const { count, bytes } = state.picked;
+  const { count, bytes, list } = state.picked;
+  const shown = list.slice(0, MAX_LISTED);
 
   return (
-    <section className="sheet">
+    <section
+      className={`sheet picker ${dragging ? "dragging" : ""}`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragging(true);
+      }}
+      onDragLeave={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragging(false);
+        void fromDrop(e.dataTransfer).then((files) => session.addFiles(files));
+      }}
+    >
       <h2 className="title">Choose what to send</h2>
-      <div
-        className={`dropzone ${dragging ? "dragging" : ""}`}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(e) => {
-          e.preventDefault();
-          setDragging(false);
-          void fromDrop(e.dataTransfer).then((files) => session.addFiles(files));
-        }}
-      >
-        <p className="body">Drop files or folders here</p>
-        <div className="actions middle">
-          <button className="btn outline small" onClick={() => filesInput.current?.click()}>
-            Add files
+      <div className="actions">
+        <button className="btn outline small" onClick={() => filesInput.current?.click()}>
+          Add files
+        </button>
+        {canPickFolder && (
+          <button className="btn outline small" onClick={() => folderInput.current?.click()}>
+            Add folder
           </button>
-          {canPickFolder && (
-            <button className="btn outline small" onClick={() => folderInput.current?.click()}>
-              Add folder
-            </button>
-          )}
-        </div>
+        )}
       </div>
+      <p className="dropline">or drop files and folders anywhere here</p>
       <input
         ref={filesInput}
         type="file"
@@ -337,14 +507,26 @@ function FilePicker({ session, state }: { session: Session; state: SessionState 
         }}
       />
       {count > 0 && (
-        <div className="tally">
-          <span>
-            <strong>{fileCount(count)}</strong> · {formatBytes(bytes)}
-          </span>
-          <button className="btn quiet small" onClick={() => session.clearFiles()}>
-            Clear
-          </button>
-        </div>
+        <>
+          <div className="tally">
+            <span>
+              <strong>{fileCount(count)}</strong> · {formatBytes(bytes)}
+            </span>
+            <button className="btn quiet small" onClick={() => session.clearFiles()}>
+              Clear all
+            </button>
+          </div>
+          <ul className="rows">
+            {shown.map((picked) => (
+              <PickedRow key={picked.path} picked={picked} onRemove={() => session.removeFile(picked.path)} />
+            ))}
+            {count > shown.length && (
+              <li>
+                <span className="fine">and {(count - shown.length).toLocaleString("en")} more</span>
+              </li>
+            )}
+          </ul>
+        </>
       )}
       <button
         className="btn solid block"
@@ -354,6 +536,95 @@ function FilePicker({ session, state }: { session: Session; state: SessionState 
         {count === 0 ? "Send" : `Send ${fileCount(count)}`}
       </button>
     </section>
+  );
+}
+
+function PickedRow({ picked, onRemove }: { picked: PickedFile; onRemove: () => void }) {
+  const slash = picked.path.lastIndexOf("/");
+  const name = picked.path.slice(slash + 1);
+  const folder = slash > 0 ? picked.path.slice(0, slash) : "";
+  return (
+    <li>
+      <Thumb file={picked.file} name={name} />
+      <span className="file-main">
+        <span className="file-name" title={picked.path}>
+          {name}
+        </span>
+        <span className="file-sub">
+          {folder && `${folder} · `}
+          {formatBytes(picked.file.size)}
+        </span>
+      </span>
+      <button className="btn quiet icon" onClick={onRemove} aria-label={`Remove ${name}`}>
+        <Glyph d="m4.5 4.5 7 7M11.5 4.5l-7 7" width="1.6" />
+      </button>
+    </li>
+  );
+}
+
+const THUMBNAIL_TYPES = /^image\/(jpeg|png|webp|gif|avif|bmp)$/;
+const THUMBNAIL_MAX_BYTES = 60 * 1024 * 1024;
+const THUMBNAIL_PIXELS = 96;
+
+/**
+ * A small preview for photos, or the file's type for everything else. The
+ * photo is decoded straight to thumbnail size, and only once its row scrolls
+ * into view, so a list of hundreds of large photos stays light.
+ */
+function Thumb({ file, name }: { file: File; name: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [failed, setFailed] = useState(false);
+  const isPhoto = THUMBNAIL_TYPES.test(file.type) && file.size <= THUMBNAIL_MAX_BYTES;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!isPhoto || !canvas) return;
+    let cancelled = false;
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      observer.disconnect();
+      createImageBitmap(file, { resizeWidth: THUMBNAIL_PIXELS, resizeQuality: "low" })
+        .then((bitmap) => {
+          if (!cancelled) {
+            // Centre-crop to a square.
+            const side = Math.min(bitmap.width, bitmap.height);
+            canvas.width = canvas.height = THUMBNAIL_PIXELS;
+            canvas
+              .getContext("2d")
+              ?.drawImage(
+                bitmap,
+                (bitmap.width - side) / 2,
+                (bitmap.height - side) / 2,
+                side,
+                side,
+                0,
+                0,
+                THUMBNAIL_PIXELS,
+                THUMBNAIL_PIXELS,
+              );
+          }
+          bitmap.close();
+        })
+        .catch(() => {
+          if (!cancelled) setFailed(true);
+        });
+    });
+    observer.observe(canvas);
+    return () => {
+      cancelled = true;
+      observer.disconnect();
+    };
+  }, [file, isPhoto]);
+
+  if (!isPhoto || failed) {
+    const dot = name.lastIndexOf(".");
+    const ext = dot > 0 ? name.slice(dot + 1, dot + 5).toUpperCase() : "FILE";
+    return <span className="thumb">{ext}</span>;
+  }
+  return (
+    <span className="thumb">
+      <canvas ref={canvasRef} aria-hidden="true" />
+    </span>
   );
 }
 

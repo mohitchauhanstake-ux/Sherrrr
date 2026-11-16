@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light dark" />
+<title>Sherrr preview: header, footer and home</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%2317171a'/%3E%3Cg stroke='%23f3f2ee' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4.5 12h6'/%3E%3Cpath d='M7 7.75h4.5M7 16.25h4.5' opacity='.55'/%3E%3C/g%3E%3Ccircle cx='16.5' cy='12' r='3.25' fill='%23f3f2ee'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400..600&family=Sora:wght@400..700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #f3f2ee;
+    --sheet: #fbfaf7;
+    --well: #eae8e2;
+    --ink: #17171a;
+    --ink-2: #4a4a50;
+    --ink-3: #74747a;
+    --ink-4: #a3a3a6;
+    --rule: rgba(23, 23, 26, 0.1);
+    --rule-strong: rgba(23, 23, 26, 0.22);
+    --signal: #1f9d5b;
+    --alarm: #b3261e;
+    --press: rgba(23, 23, 26, 0.06);
+    --font: "Sora", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+    --r-control: 10px;
+    --r-sheet: 16px;
+    --measure: 46rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #111113; --sheet: #19191c; --well: #0c0c0e;
+      --ink: #f0efea; --ink-2: #b9b8b3; --ink-3: #8a8985; --ink-4: #5d5c59;
+      --rule: rgba(240, 239, 234, 0.1); --rule-strong: rgba(240, 239, 234, 0.24);
+      --signal: #3ecf8e; --alarm: #ff8a80; --press: rgba(240, 239, 234, 0.08);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #111113; --sheet: #19191c; --well: #0c0c0e;
+    --ink: #f0efea; --ink-2: #b9b8b3; --ink-3: #8a8985; --ink-4: #5d5c59;
+    --rule: rgba(240, 239, 234, 0.1); --rule-strong: rgba(240, 239, 234, 0.24);
+    --signal: #3ecf8e; --alarm: #ff8a80; --press: rgba(240, 239, 234, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, p { margin: 0; }
+  a { color: inherit; }
+
+  /* ===== preview-only chrome ===== */
+  .preview-bar {
+    padding: 8px 16px;
+    text-align: center;
+    font: 500 12px/1.4 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    border-bottom: 1px dashed var(--rule-strong);
+  }
+  .preview-divider {
+    max-width: 72rem;
+    margin: 56px auto 0;
+    padding: 0 16px;
+    font: 500 12px/1.4 var(--mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .preview-divider::after { content: ""; display: block; margin-top: 10px; border-top: 1px dashed var(--rule-strong); }
+  .specimens {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 24px 16px 72px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+    gap: 24px;
+    align-items: start;
+  }
+  .frame { border: 1px dashed var(--rule-strong); border-radius: 20px; overflow: hidden; }
+  .frame-label {
+    padding: 12px 16px 0;
+    font: 500 12px/1 var(--mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .frame-body { padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* ===== site header ===== */
+  .site-header { border-bottom: 1px solid var(--rule); }
+  .bar {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 60px;
+  }
+  .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; }
+  .mark { flex: none; width: 28px; height: 28px; display: block; }
+  .wordmark { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+  .wordmark span:nth-child(1) { opacity: 0.55; }
+  .wordmark span:nth-child(2) { opacity: 0.28; }
+  .bar-end { display: flex; align-items: center; gap: 4px; min-width: 0; }
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-2);
+    text-decoration: none;
+  }
+  .nav-link:hover { background: var(--press); color: var(--ink); }
+  .status { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; font-weight: 500; color: var(--ink-2); padding-right: 4px; }
+  .status-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--ink-4); }
+  .dot.live { background: var(--signal); box-shadow: 0 0 0 3px color-mix(in srgb, var(--signal) 22%, transparent); }
+
+  /* ===== page ===== */
+  .page {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 40px 16px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .lede {
+    font-size: clamp(28px, 6.4vw, 44px);
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.1;
+    text-wrap: balance;
+    max-width: 16em;
+  }
+  .lede-sub { color: var(--ink-2); font-size: clamp(15px, 2.2vw, 17px); max-width: 34em; margin-bottom: 8px; }
+  .body { color: var(--ink-2); font-size: 15px; }
+  .fine { color: var(--ink-3); font-size: 13px; }
+  .eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+  .title { font-size: 19px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.3; }
+
+  .sheet {
+    background: var(--sheet);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-sheet);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+  }
+  .duo { display: grid; gap: 16px; grid-template-columns: 1fr; }
+
+  /* ===== how it works ===== */
+  .section { margin-top: 40px; display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 16px; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: 0; }
+  .steps li { padding: 16px 0; border-top: 1px solid var(--rule); display: grid; grid-template-columns: 2.5rem 1fr; gap: 4px 8px; }
+  .steps .n { font: 500 13px/1.7 var(--mono); color: var(--ink-3); grid-row: span 2; }
+  .steps h3 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .steps p { color: var(--ink-2); font-size: 14px; }
+
+  /* ===== trust points ===== */
+  .facts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .facts li { padding: 16px; border: 1px solid var(--rule); border-radius: 12px; display: flex; flex-direction: column; gap: 4px; }
+  .facts h3 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+  .facts h3 svg { flex: none; width: 16px; height: 16px; color: var(--ink-3); }
+  .facts p { color: var(--ink-2); font-size: 13.5px; }
+
+  @media (min-width: 40rem) {
+    .page { padding-top: 56px; gap: 20px; }
+    .duo { grid-template-columns: 1fr 1fr; }
+    .sheet { padding: 24px; }
+    .section { margin-top: 56px; }
+    .steps { grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .steps li { grid-template-columns: 1fr; padding: 16px 0 0; }
+    .steps .n { grid-row: auto; }
+    .facts { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  /* ===== footer ===== */
+  .site-footer { margin-top: 64px; border-top: 1px solid var(--rule); }
+  .foot {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: 24px 16px 32px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+  }
+  .foot-note { display: flex; align-items: center; gap: 10px; color: var(--ink-2); font-size: 13.5px; min-width: 0; }
+  .foot-note .mark { width: 20px; height: 20px; }
+  .foot-links { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; font-size: 13.5px; }
+  .foot-links a { color: var(--ink-2); text-decoration: none; padding: 6px 0; }
+  .foot-links a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+  .foot-links .ver { font: 400 12px/1 var(--mono); color: var(--ink-3); }
+
+  /* ===== buttons ===== */
+  .btn {
+    appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 46px;
+    padding: 0 18px;
+    border-radius: var(--r-control);
+    border: 1px solid transparent;
+    font: 600 15px/1.2 var(--font);
+    letter-spacing: -0.005em;
+    cursor: pointer;
+    user-select: none;
+    text-decoration: none;
+    transition: background-color 0.12s ease, border-color 0.12s ease, transform 0.06s ease, box-shadow 0.12s ease;
+  }
+  .btn svg { flex: none; width: 16px; height: 16px; }
+  .btn:focus-visible, .field:focus-visible, .nav-link:focus-visible, .brand:focus-visible, .foot-links a:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
+  .btn:disabled { cursor: not-allowed; opacity: 0.4; }
+  .btn.solid {
+    background: var(--ink); color: var(--paper); border-color: var(--ink);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 1px 2px rgba(0, 0, 0, 0.22), 0 4px 10px -4px rgba(0, 0, 0, 0.3);
+  }
+  .btn.solid:hover:not(:disabled) { background: color-mix(in srgb, var(--ink) 86%, var(--paper)); }
+  .btn.outline {
+    background: var(--sheet); color: var(--ink); border-color: var(--rule-strong);
+    box-shadow: 0 1px 0 var(--rule), 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  .btn.outline:hover:not(:disabled) { border-color: var(--ink-3); background: var(--paper); }
+  .btn.quiet { background: transparent; color: var(--ink-2); padding: 0 12px; }
+  .btn.quiet:hover:not(:disabled) { background: var(--press); color: var(--ink); }
+  .btn.small { min-height: 36px; padding: 0 12px; font-size: 14px; border-radius: 8px; }
+  .btn.icon { width: 36px; min-height: 36px; padding: 0; border-radius: 8px; }
+  .btn.block { width: 100%; }
+
+  .field {
+    width: 100%; min-height: 46px; padding: 0 14px;
+    border-radius: var(--r-control); border: 1px solid var(--rule-strong);
+    background: var(--well); color: var(--ink);
+    font: 600 18px/1 var(--mono); letter-spacing: 0.28em; text-transform: uppercase;
+  }
+  .field::placeholder { color: var(--ink-4); }
+  .join { display: flex; gap: 8px; width: 100%; }
+  .join .field { flex: 1 1 0; min-width: 0; }
+
+  /* ===== sender file list ===== */
+  .picker-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; }
+  .picker-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .dropline {
+    width: 100%;
+    padding: 12px;
+    border: 1.5px dashed var(--rule-strong);
+    border-radius: 12px;
+    text-align: center;
+    color: var(--ink-3);
+    font-size: 13.5px;
+  }
+  .filelist { list-style: none; margin: 0; padding: 0; width: 100%; max-height: 19rem; overflow-y: auto; }
+  .filelist li { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--rule); }
+  .filelist li:first-child { border-top: 0; }
+  .thumb {
+    flex: none;
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    background: var(--well);
+    border: 1px solid var(--rule);
+    display: grid; place-items: center;
+    overflow: hidden;
+    font: 600 10px/1 var(--mono);
+    letter-spacing: 0.04em;
+    color: var(--ink-3);
+  }
+  .thumb svg { width: 100%; height: 100%; display: block; }
+  .file-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .file-name { font-size: 14.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-sub { font: 400 12px/1.5 var(--mono); color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tally { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; font-size: 15px; }
+  .tally strong { font-weight: 600; }
+
+  /* ===== icon specimens ===== */
+  .icon-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px; }
+  .icon-row figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .icon-row figcaption { font: 400 11px/1 var(--mono); color: var(--ink-3); }
+  .tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    max-width: 100%;
+    padding: 8px 14px 8px 10px;
+    border-radius: 10px 10px 0 0;
+    background: var(--sheet);
+    border: 1px solid var(--rule); border-bottom: 0;
+    font: 400 12.5px/1 system-ui, sans-serif;
+    color: var(--ink-2);
+  }
+  .tab span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tab svg { flex: none; width: 16px; height: 16px; }
+  .share {
+    width: 100%;
+    aspect-ratio: 1200 / 630;
+    border-radius: 12px;
+    border: 1px solid var(--rule);
+    background: #f3f2ee;
+    color: #17171a;
+    --mark-bg: #17171a;
+    --mark-fg: #f3f2ee;
+    padding: 7%;
+    display: flex; flex-direction: column; justify-content: space-between;
+    container-type: inline-size;
+  }
+  .share .brand .mark { width: 9cqi; height: 9cqi; }
+  .share .wordmark { font-size: 6.4cqi; }
+  .share h3 { font-size: 8.6cqi; font-weight: 700; letter-spacing: -0.035em; line-height: 1.08; }
+  .share p { font: 500 3.2cqi/1 var(--mono); color: #74747a; letter-spacing: 0.04em; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 24 24">
+    <rect width="24" height="24" rx="6" style="fill:var(--mark-bg, var(--ink))" />
+    <g fill="none" stroke-width="2" stroke-linecap="round" style="stroke:var(--mark-fg, var(--paper))">
+      <path d="M4.5 12h6" />
+      <path d="M7 7.75h4.5M7 16.25h4.5" opacity=".55" />
+    </g>
+    <circle cx="16.5" cy="12" r="3.25" style="fill:var(--mark-fg, var(--paper))" />
+  </symbol>
+</svg>
+
+<div class="preview-bar">Preview only · this is the proposed home page, not the live site</div>
+
+<!-- ================= the site ================= -->
+<header class="site-header">
+  <div class="bar">
+    <a class="brand" href="#" aria-label="Sherrr home">
+      <svg class="mark"><use href="#mark" /></svg>
+      <span class="wordmark">Sher<span>r</span><span>r</span></span>
+    </a>
+    <nav class="bar-end" aria-label="Site">
+      <a class="nav-link" href="#how">How it works</a>
+      <button class="btn quiet icon" id="theme" type="button" aria-label="Switch between light and dark">
+        <svg id="theme-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="page">
+  <h1 class="lede">Send big files straight to another device.</h1>
+  <p class="lede-sub">No upload, no account, no size cap. Files travel directly from this device to the other one.</p>
+
+  <div class="duo">
+    <section class="sheet">
+      <span class="eyebrow">Send</span>
+      <h2 class="title">Share from this device</h2>
+      <p class="body">You get a code. Open it on the device that should receive the files.</p>
+      <button class="btn solid block" type="button">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg>
+        Send files
+      </button>
+    </section>
+    <section class="sheet">
+      <span class="eyebrow">Receive</span>
+      <h2 class="title">Enter the sender's code</h2>
+      <p class="body">Type the six characters shown on the sending device.</p>
+      <div class="join">
+        <input class="field" aria-label="Code" placeholder="ABC123" maxlength="6" />
+        <button class="btn outline" type="button">Connect</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="section" id="how" aria-labelledby="how-h">
+    <h2 class="eyebrow" id="how-h">How it works</h2>
+    <ol class="steps">
+      <li><span class="n">01</span><h3>Get a code</h3><p>Press Send files. You get a six-character code and a QR to scan.</p></li>
+      <li><span class="n">02</span><h3>Join with the code</h3><p>Scan the QR or type the code. The two devices find each other.</p></li>
+      <li><span class="n">03</span><h3>Files go direct</h3><p>Pick what to send. It travels straight between the two devices.</p></li>
+    </ol>
+  </section>
+
+  <section class="section" aria-labelledby="facts-h">
+    <h2 class="eyebrow" id="facts-h">Good to know</h2>
+    <ul class="facts">
+      <li>
+        <h3><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="10" height="6.5" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>Encrypted</h3>
+        <p>Every transfer is encrypted between the two devices.</p>
+      </li>
+      <li>
+        <h3><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 11.5h7a2.5 2.5 0 0 0 .4-4.97A4 4 0 0 0 4.2 7.3 2.2 2.2 0 0 0 4.5 11.5Z"/><path d="m2.5 2.5 11 11"/></svg>Nothing stored</h3>
+        <p>Files never pass through or sit on a server.</p>
+      </li>
+      <li>
+        <h3><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="5.5" r="2.5"/><path d="M3 13.5a5 5 0 0 1 10 0"/><path d="m2.5 2.5 11 11"/></svg>No account</h3>
+        <p>No sign-up, no email, and no app to install.</p>
+      </li>
+      <li>
+        <h3><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 8c1.2-2 2.3-3 3.5-3 2.5 0 3.500 6 6 6 1.200 0 2.300-1 3.500-3-1.200-2-2.300-3-3.500-3-2.500 0-3.500 6-6 6-1.200 0-2.300-1-3.500-3Z"/></svg>No size cap</h3>
+        <p>Send one photo or a whole 40 GB trip.</p>
+      </li>
+    </ul>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="foot">
+    <p class="foot-note">
+      <svg class="mark"><use href="#mark" /></svg>
+      <span>Files go device to device and never touch our servers.</span>
+    </p>
+    <nav class="foot-links" aria-label="Footer">
+      <a href="#how">How it works</a>
+      <a href="#">GitHub</a>
+      <a href="#">Contact</a>
+      <span class="ver">v0.1</span>
+    </nav>
+  </div>
+</footer>
+
+<!-- ================= other pieces ================= -->
+<p class="preview-divider">Other pieces in this batch</p>
+<div class="specimens">
+
+  <section class="frame">
+    <p class="frame-label">Sender file list</p>
+    <header class="site-header" style="margin-top:12px">
+      <div class="bar">
+        <span class="brand"><svg class="mark"><use href="#mark" /></svg><span class="wordmark">Sher<span>r</span><span>r</span></span></span>
+        <div class="bar-end">
+          <span class="status"><span class="dot live"></span><span class="status-text">Connected</span></span>
+          <button class="btn quiet small" type="button">Disconnect</button>
+        </div>
+      </div>
+    </header>
+    <div class="frame-body">
+      <div class="sheet">
+        <div class="picker-head">
+          <h2 class="title">Choose what to send</h2>
+        </div>
+        <div class="picker-actions">
+          <button class="btn outline small" type="button">Add files</button>
+          <button class="btn outline small" type="button">Add folder</button>
+        </div>
+        <div class="dropline">or drop files and folders anywhere here</div>
+        <div class="tally">
+          <span><strong>6 files</strong> · 4.3 GB</span>
+          <button class="btn quiet small" type="button">Clear all</button>
+        </div>
+        <ul class="filelist" id="filelist"></ul>
+        <button class="btn solid block" type="button">Send 6 files</button>
+      </div>
+      <p class="fine">Photos show a real thumbnail in the app. Other files show their type. The cross removes one file.</p>
+    </div>
+  </section>
+
+  <section class="frame">
+    <p class="frame-label">Icon, browser tab and share image</p>
+    <div class="frame-body">
+      <div class="icon-row">
+        <figure><svg class="mark" style="width:16px;height:16px"><use href="#mark" /></svg><figcaption>16</figcaption></figure>
+        <figure><svg class="mark" style="width:32px;height:32px"><use href="#mark" /></svg><figcaption>32</figcaption></figure>
+        <figure><svg class="mark" style="width:64px;height:64px"><use href="#mark" /></svg><figcaption>64</figcaption></figure>
+        <figure><svg class="mark" style="width:120px;height:120px"><use href="#mark" /></svg><figcaption>App icon</figcaption></figure>
+      </div>
+      <div>
+        <div class="tab"><svg class="mark"><use href="#mark" /></svg><span>Sherrr | Send big files straight to another device</span></div>
+        <div style="border-top:1px solid var(--rule)"></div>
+      </div>
+      <div class="share" role="img" aria-label="Share preview image">
+        <span class="brand"><svg class="mark"><use href="#mark" /></svg><span class="wordmark">Sher<span>r</span><span>r</span></span></span>
+        <h3>Send big files straight to another device.</h3>
+        <p>NO UPLOAD · NO ACCOUNT · NO SIZE CAP</p>
+      </div>
+      <p class="fine">The share image is what appears when the link is pasted into WhatsApp, Slack or a text message.</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  // ---- theme toggle (header button) ----
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+  };
+  const SUN = '<circle cx="8" cy="8" r="2.75"/><path d="M8 1.75v1.5M8 12.750v1.500M1.750 8h1.500M12.750 8h1.500M3.600 3.600l1.050 1.050M11.350 11.350l1.050 1.050M3.600 12.400l1.050-1.050M11.350 4.650l1.050-1.050"/>';
+  const MOON = '<path d="M13.250 9.400A5.500 5.500 0 0 1 6.600 2.750a5.500 5.500 0 1 0 6.650 6.650Z"/>';
+  const systemDark = matchMedia("(prefers-color-scheme: dark)");
+  const isDark = () => (document.documentElement.dataset.theme ?? (systemDark.matches ? "dark" : "light")) === "dark";
+  function paintTheme() { document.getElementById("theme-icon").innerHTML = isDark() ? SUN : MOON; }
+  const saved = store.get("sherrr-theme");
+  if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
+  paintTheme();
+  systemDark.addEventListener("change", paintTheme);
+  document.getElementById("theme").addEventListener("click", () => {
+    const next = isDark() ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    store.set("sherrr-theme", next);
+    paintTheme();
+  });
+
+  // ---- sample file list ----
+  const PHOTO = '<svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="currentColor" opacity=".12"/><circle cx="28" cy="13" r="4" fill="currentColor" opacity=".35"/><path d="M0 32 12 19l9 9 6-5 13 11v6H0Z" fill="currentColor" opacity=".35"/></svg>';
+  const FILES = [
+    { name: "IMG_20261102_181455.jpg", sub: "Goa trip · 6.4 MB", photo: true },
+    { name: "IMG_20261102_181502.jpg", sub: "Goa trip · 5.9 MB", photo: true },
+    { name: "DSC_0412.MOV", sub: "Goa trip · 2.1 GB", ext: "MOV" },
+    { name: "DSC_0413.MOV", sub: "Goa trip · 1.8 GB", ext: "MOV" },
+    { name: "Itinerary and bookings final.pdf", sub: "1.2 MB", ext: "PDF" },
+    { name: "raw-audio-backup.zip", sub: "412 MB", ext: "ZIP" },
+  ];
+  const list = document.getElementById("filelist");
+  for (const f of FILES) {
+    const li = document.createElement("li");
+    li.innerHTML =
+      '<span class="thumb">' + (f.photo ? PHOTO : f.ext) + "</span>" +
+      '<span class="file-main"><span class="file-name"></span><span class="file-sub"></span></span>' +
+      '<button class="btn quiet icon" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="m4.5 4.500 7 7M11.500 4.500l-7 7"/></svg></button>';
+    li.querySelector(".file-name").textContent = f.name;
+    li.querySelector(".file-sub").textContent = f.sub;
+    li.querySelector("button").setAttribute("aria-label", "Remove " + f.name);
+    li.querySelector("button").addEventListener("click", () => li.remove());
+    list.append(li);
+  }
+</script>
+</body>
+</html>

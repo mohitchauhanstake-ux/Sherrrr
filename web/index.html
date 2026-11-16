@@ -2,10 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
     <title>Sherrr | Send big files straight to another device</title>
-    <meta name="description" content="Send photos, videos and large files directly from one device to another. No upload, no account, no size limit." />
+    <meta name="description" content="Send photos, videos and large files directly from one device to another. No upload and no account." />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Shown when the link is pasted into a chat or social app. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Sherrr" />
+    <meta property="og:title" content="Sherrr | Send big files straight to another device" />
+    <meta property="og:description" content="No upload and no account. Files travel directly from one device to the other." />
+    <meta property="og:url" content="https://sherrrrr.netlify.app/" />
+    <meta property="og:image" content="https://sherrrrr.netlify.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Apply a saved light/dark choice before the page paints, to avoid a flash. -->
+    <script>
+      try {
+        var t = localStorage.getItem("sherrr-theme");
+        if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
